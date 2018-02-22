@@ -1,0 +1,3 @@
+[submodule "CalculatableIPAddress"]
+	path = CalculatableIPAddress
+	url = https://github.com/southernwind/CalculatableIPAddress.git

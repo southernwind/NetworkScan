@@ -1,0 +1,223 @@
+﻿<Window x:Class="SandBeige.NetworkScan.Views.MainWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+	xmlns:vm="clr-namespace:SandBeige.NetworkScan.ViewModels"
+	mc:Ignorable="d"
+	Title="NetworkScan"
+	Height="700"
+	Width="1000"
+	TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+	TextElement.FontWeight="Regular"
+	TextElement.FontSize="13"
+	TextOptions.TextFormattingMode="Ideal"
+	TextOptions.TextRenderingMode="Auto"
+	Background="{DynamicResource MaterialDesignPaper}"
+	FontFamily="{DynamicResource MaterialDesignFont}"
+	Icon="/NetworkScan;component/Resources/icon.ico"
+	d:DataContext="{d:DesignInstance vm:MainWindowViewModel}"
+	>
+	<Window.Resources>
+		<ResourceDictionary>
+			<Style TargetType="{x:Type Window}">
+				<Setter Property="BorderBrush" Value="DarkGray" />
+				<Setter Property="Background" Value="Black" />
+				<Setter Property="Foreground" Value="White"/>
+			</Style>
+		</ResourceDictionary>
+	</Window.Resources>
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"></RowDefinition>
+			<RowDefinition Height="*"></RowDefinition>
+		</Grid.RowDefinitions>
+		<DockPanel Grid.Row="0">
+			<ComboBox
+				DockPanel.Dock="Left" 
+				MinWidth="150"
+				Margin="5"
+				ItemsSource="{Binding NicList}"
+				SelectedItem="{Binding SelectedInterface.Value}"
+				HorizontalContentAlignment="Stretch">
+				<i:Interaction.Triggers>
+					<i:EventTrigger EventName="SelectionChanged">
+						<i:InvokeCommandAction Command="{Binding ClearCommand}"/>
+					</i:EventTrigger>
+				</i:Interaction.Triggers>
+				<ComboBox.ItemTemplate >
+					<DataTemplate>
+						<Border BorderThickness="0,0,0,0.99" BorderBrush="Gray" Margin="2" MinWidth="{TemplateBinding Width}">
+							<StackPanel>
+								<TextBlock Text="{Binding NetworkInterface.Name}"/>
+								<TextBlock Text="{Binding NetworkInterface.Description}" 
+									FontSize="10"
+									Foreground="Gray"/>
+								<TextBlock Text="{Binding PhysicalAddress,Converter={StaticResource MacAddressFormatConverter}}"
+									FontSize="10"
+									Foreground="Gray"/>
+								<TextBlock FontSize="10" Foreground="Gray">
+									<TextBlock.Text>
+										<MultiBinding StringFormat="{}{0}({1}/{2})">
+											<Binding Path="UnicastAddress.Address"/>
+											<Binding Path="NetworkAddress"/>
+											<Binding Path="UnicastAddress.PrefixLength"/>
+										</MultiBinding>
+									</TextBlock.Text>
+								</TextBlock>
+							</StackPanel>
+						</Border>
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+			<Grid DockPanel.Dock="Left" HorizontalAlignment="Right">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="1*"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="1*"/>
+				</Grid.RowDefinitions>
+				<Grid Grid.Row="0"></Grid>
+				<Button Grid.Row="1" Content="Scan" Margin="5" Command="{Binding ScanCommand}">
+					<Button.IsEnabled>
+						<MultiBinding Converter="{StaticResource IsAllFalseConverter}">
+							<Binding ElementName="RequestInterval" Path="(Validation.HasError)" />
+							<Binding ElementName="ScanAddressFrom" Path="(Validation.HasError)" />
+							<Binding ElementName="ScanAddressTo" Path="(Validation.HasError)" />
+						</MultiBinding>
+					</Button.IsEnabled>
+				</Button>
+				<ProgressBar 
+					Grid.Row="2"
+					Width="100"
+					DockPanel.Dock="Bottom"
+					Value="{Binding ScanProgressRate.Value}"
+					Height="10"
+					Margin="5"
+					Visibility="{
+						Binding DeviceScanning.Value,
+						Mode=OneWay,
+						Converter={
+							StaticResource BooleanToVisibilityConverter
+						}
+					}"></ProgressBar>
+				<Grid Grid.Row="3"></Grid>
+			</Grid>
+			<Button DockPanel.Dock="Left" Content="Clear" Margin="5" Command="{Binding ClearCommand}"></Button>
+			<Grid DockPanel.Dock="Left" Margin="5">
+				<TextBlock Text="Request Interval(ms)"/>
+				<TextBox
+					x:Name="RequestInterval"
+					Height="30"
+					Text="{Binding RequestInterval.Value,UpdateSourceTrigger=PropertyChanged}"
+					Margin="0,10,0,12"></TextBox>
+			</Grid>
+			<Grid DockPanel.Dock="Left" Margin="5">
+				<TextBlock Text="Scan Address From"/>
+				<TextBox Height="30" x:Name="ScanAddressFrom">
+					<TextBox.Text>
+						<Binding Path="ScanAddressFrom.Value" Converter="{StaticResource CalculatableIPAddress}" UpdateSourceTrigger="PropertyChanged">
+							<Binding.ValidationRules>
+								<StaticResource ResourceKey="IPAddressValidationRule"/>
+							</Binding.ValidationRules>
+						</Binding>
+					</TextBox.Text>
+				</TextBox>
+			</Grid>
+			<Grid DockPanel.Dock="Left" Margin="5">
+				<TextBlock Text="Scan Address To"/>
+				<TextBox Height="30" x:Name="ScanAddressTo">
+					<TextBox.Text>
+						<Binding Path="ScanAddressTo.Value" Converter="{StaticResource CalculatableIPAddress}" UpdateSourceTrigger="PropertyChanged">
+							<Binding.ValidationRules>
+								<StaticResource ResourceKey="IPAddressValidationRule"/>
+							</Binding.ValidationRules>
+						</Binding>
+					</TextBox.Text>
+				</TextBox>
+			</Grid>
+			<Grid DockPanel.Dock="Right" HorizontalAlignment="Right">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="1*"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="1*"/>
+				</Grid.RowDefinitions>
+				<Grid Grid.Row="0"></Grid>
+				<Button Grid.Row="1" Content="VendorListUpdate" Margin="5" Command="{Binding VendorListUpdateCommand}"></Button>
+				<ProgressBar 
+					Grid.Row="2"
+					Width="150"
+					DockPanel.Dock="Bottom"
+					Value="{Binding VendorListUpdateProgressRate.Value}"
+					Height="10"
+					Margin="5"
+					Visibility="{
+						Binding VendorUpdating.Value,
+						Mode=OneWay,
+						Converter={
+							StaticResource BooleanToVisibilityConverter
+						}
+					}"></ProgressBar>
+				<Grid Grid.Row="3"></Grid>
+			</Grid>
+		</DockPanel>
+		<Grid Grid.Row="1">
+			<ListView
+				ItemsSource="{Binding SortedDeviceList}">
+				<ListView.View>
+					<GridView>
+						<GridViewColumn Width="150">
+							<GridViewColumn.Header>
+								<TextBlock Text="IPAddress" HorizontalAlignment="Center" />
+							</GridViewColumn.Header>
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding IPAddress}"
+										TextTrimming="None"
+										TextWrapping="NoWrap" />
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+
+						<GridViewColumn Width="200">
+							<GridViewColumn.Header>
+								<TextBlock Text="HostName" HorizontalAlignment="Center" />
+							</GridViewColumn.Header>
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding HostName}"
+										TextTrimming="None"
+										TextWrapping="NoWrap" />
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+
+						<GridViewColumn Width="150">
+							<GridViewColumn.Header>
+								<TextBlock Text="MAC Address" HorizontalAlignment="Center" />
+							</GridViewColumn.Header>
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding MacAddress,Converter={StaticResource MacAddressFormatConverter}}" />
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+
+						<GridViewColumn Width="250">
+							<GridViewColumn.Header>
+								<TextBlock Text="Vendor" />
+							</GridViewColumn.Header>
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<TextBlock Text="{Binding Vendor.OrganizationName}"	/>
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+						</GridViewColumn>
+					</GridView>
+				</ListView.View>
+			</ListView>
+		</Grid>
+	</Grid>
+</Window>

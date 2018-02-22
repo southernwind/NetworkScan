@@ -1,0 +1,9 @@
+﻿<ResourceDictionary 
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="clr-namespace:SandBeige.NetworkScan.Views.Converters">
+	<converters:MacAddressFormatConverter x:Key="MacAddressFormatConverter"></converters:MacAddressFormatConverter>
+	<converters:CalculatableIPAddressConverter x:Key="CalculatableIPAddress"></converters:CalculatableIPAddressConverter>
+	<converters:IsAllFalseConverter x:Key="IsAllFalseConverter"></converters:IsAllFalseConverter>
+	<BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"></BooleanToVisibilityConverter>
+</ResourceDictionary>
